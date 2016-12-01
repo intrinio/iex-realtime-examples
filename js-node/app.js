@@ -2,6 +2,7 @@
 var https = require('https');
 var username = "YOUR_API_USERNAME";
 var password = "YOUR_API_PASSWORD";
+
 var WebSocket = require('ws');
 
 authorize();
@@ -49,8 +50,15 @@ function connect(token) {
 
   ws.on('open', function open() {
     console.log('open');
-    listenToTicker(ws, "AAPL");
-    listenToTicker(ws, "MSFT");
+    
+    // Listen to AAPL
+    listenToTicker(ws, 'AAPL');
+    listenToTicker(ws, 'MSFT');
+    
+    // Send a heartbeat every 30 seconds
+    setInterval(function(){
+      heartbeat(ws);
+    }, 30000);
   });
 
   ws.on('close', function close() {
@@ -77,11 +85,52 @@ function connect(token) {
   });
 }
 
+// Start listening to the specified ticker
 function listenToTicker(socket, ticker) {
   socket.send(JSON.stringify({
     topic: 'iex:securities:' + ticker,
     event: 'phx_join',
     payload: {},
-    ref: '1'
+    ref: null
+  }));
+}
+
+// Stop listening to the specified ticker
+function unlistenToTicker(socket, ticker) {
+  socket.send(JSON.stringify({
+    topic: 'iex:securities:' + ticker,
+    event: 'phx_leave',
+    payload: {},
+    ref: null
+  }));
+}
+
+// Start listening to the lobby (not available with all subscriptions)
+function listenToLobby(socket) {
+  socket.send(JSON.stringify({
+    topic: 'iex:lobby',
+    event: 'phx_join',
+    payload: {},
+    ref: null
+  }));
+}
+
+// Start listening to the lobby (not available with all subscriptions)
+function unlistenToLobby(socket) {
+  socket.send(JSON.stringify({
+    topic: 'iex:lobby',
+    event: 'phx_leave',
+    payload: {},
+    ref: null
+  }));
+}
+
+// Send a heartbeat message, to keep the copnnection alive
+function heartbeat(socket) {
+  socket.send(JSON.stringify({
+    topic: 'phoenix',
+    event: 'heartbeat',
+    payload: {},
+    ref: null
   }));
 }
