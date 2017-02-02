@@ -19,14 +19,23 @@ EM.run do
 
   # Connect to a channel to listen for prices
   ws.on :open do
-    message = {
+    # Setup a heartbeat
+    EM.add_periodic_timer(30) do
+      ws.send({
+        topic: 'phoenix',
+        event: 'heartbeat',
+        payload: {},
+        ref: nil
+      }.to_json)
+    end
+
+    # Listen to a security
+    ws.send({
       topic: "iex:securities:AAPL",
       event: "phx_join",
       payload: {},
       ref: "1"
-    }
-
-    ws.send(message.to_json)
+    }.to_json)
   end
 
   # Parse prices from incoming messages
@@ -53,4 +62,6 @@ EM.run do
   ws.on :error do |e|
     puts e
   end
+
+
 end
