@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "ws": "^1.1.1"
+    "intrinio-realtime": "^1.0.0"
   }
 }
