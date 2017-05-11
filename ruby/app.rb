@@ -1,67 +1,31 @@
-require "uri"
-require "http"
-require "eventmachine"
-require "websocket-client-simple"
+require 'rubygems'
+require 'intrinio-realtime'
+require 'thread/pool'
 
-# Request auth token
-api_username = "API_USERNAME"
-api_password = "API_PASSWORD"
-auth_url = "https://realtime.intrinio.com/auth"
+# Provide your Intrinio API access keys (found in https://intrinio.com/account)
+username = "YOUR_INTRINIO_API_USERNAME"
+password = "YOUR_INTRINIO_API_PASSWORD"
 
-token = HTTP.basic_auth(:user => api_username, :pass => api_password)
-            .get(auth_url)
-            .body
+# Setup a logger
+logger = Logger.new($stdout)
+logger.level = Logger::INFO
 
-EM.run do
-  # Connect to Intrinio's WebSocket
-  socket_url = URI.escape("wss://realtime.intrinio.com/socket/websocket?vsn=1.0.0&token=#{token}")
-  ws = WebSocket::Client::Simple.connect(socket_url)
+# Specify options
+options = {
+  username: username, 
+  password: password, 
+  channels: ["MSFT","AAPL","GE"],
+  logger: logger
+}
 
-  # Connect to a channel to listen for prices
-  ws.on :open do
-    # Setup a heartbeat
-    EM.add_periodic_timer(30) do
-      ws.send({
-        topic: 'phoenix',
-        event: 'heartbeat',
-        payload: {},
-        ref: nil
-      }.to_json)
-    end
+# Setup a pool of 50 threads to handle quotes
+pool = Thread.pool(50)
 
-    # Listen to a security
-    ws.send({
-      topic: "iex:securities:AAPL",
-      event: "phx_join",
-      payload: {},
-      ref: "1"
-    }.to_json)
+# Start listening for quotes
+Intrinio::Realtime.connect(options) do |quote|
+  # Process quote in next available thread
+  pool.process do
+    logger.info "QUOTE! #{quote}"
+    sleep 0.100 # simulate 100ms for I/O operation
   end
-
-  # Parse prices from incoming messages
-  ws.on :message do |msg|
-    message = JSON.parse(msg.data)
-    if message["event"] == "quote"
-      quote = message["payload"]
-      puts "== QUOTE ==== "
-      puts "TYPE: #{quote["type"]}"
-      puts "TICKER: #{quote["ticker"]}"
-      puts "PRICE: #{quote["price"]}"
-      puts "SIZE: #{quote["size"]}"
-      puts "============= "
-    else
-      puts msg
-    end
-  end
-
-  ws.on :close do |e|
-    puts e
-    exit 1
-  end
-
-  ws.on :error do |e|
-    puts e
-  end
-
-
 end

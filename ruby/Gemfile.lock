@@ -1,24 +1,31 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    addressable (2.4.0)
-    domain_name (0.5.20160310)
+    addressable (2.5.1)
+      public_suffix (~> 2.0, >= 2.0.2)
+    domain_name (0.5.20170404)
       unf (>= 0.0.5, < 1.0.0)
     event_emitter (0.2.5)
-    eventmachine (1.2.2)
-    http (2.0.1)
+    eventmachine (1.2.3)
+    http (2.2.2)
       addressable (~> 2.3)
       http-cookie (~> 1.0)
       http-form_data (~> 1.0.1)
       http_parser.rb (~> 0.6.0)
-    http-cookie (1.0.2)
+    http-cookie (1.0.3)
       domain_name (~> 0.5)
-    http-form_data (1.0.1)
+    http-form_data (1.0.2)
     http_parser.rb (0.6.0)
+    intrinio-realtime (1.0.0)
+      eventmachine (~> 1.2)
+      http (~> 2.2)
+      websocket-client-simple (~> 0.3)
+    public_suffix (2.0.5)
+    thread (0.2.2)
     unf (0.1.4)
       unf_ext
-    unf_ext (0.0.7.2)
-    websocket (1.2.3)
+    unf_ext (0.0.7.4)
+    websocket (1.2.4)
     websocket-client-simple (0.3.0)
       event_emitter
       websocket
@@ -27,9 +34,8 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  eventmachine
-  http
-  websocket-client-simple
+  intrinio-realtime
+  thread
 
 RUBY VERSION
    ruby 2.3.1p112
